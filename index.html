@@ -295,13 +295,6 @@
       cursor: pointer;
     }
 
-    .empty-table-msg {
-      color: #8e8e93;
-      text-align: center;
-      padding: 20px 0;
-      font-size: 14px;
-    }
-
     /* Поля ввода */
     .form-group {
       margin-bottom: 14px;
@@ -440,7 +433,7 @@
           <thead>
             <tr>
               <th>Дата</th>
-              <th>Оценка (нажми)</th>
+              <th>Оценка</th>
               <th>Вес</th>
             </tr>
           </thead>
@@ -462,7 +455,6 @@
         <input type="text" class="form-input" id="settingPeriodInput" oninput="updatePeriod(this.value)">
       </div>
       <hr style="border: none; border-top: 1px solid #2c2c2e; margin: 16px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Добавить оценку в предмет</h3>
       <div class="form-group">
         <label>Предмет</label>
         <select class="form-select" id="newGradeSubject"></select>
@@ -479,8 +471,8 @@
         <label>Дата</label>
         <input type="text" class="form-input" id="newGradeDate" placeholder="Например: 25 окт">
       </div>
-      <button class="btn btn-primary" style="width: 100%;" onclick="addGradeFromSettings()">Добавить оценку</button>
-      <button class="btn btn-secondary" onclick="clearAllGrades()">Очистить все выставленные оценки</button>
+      <button class="btn btn-primary" style="width: 100%;" onclick="addGradeFromSettings()">Сохранить</button>
+      <button class="btn btn-secondary" onclick="clearAllGrades()">Очистить все оценки</button>
     </div>
   </div>
 
@@ -666,35 +658,29 @@
       const tbody = document.getElementById("detailsTableBody");
       tbody.innerHTML = "";
 
-      if (subj.items.length === 0) {
+      subj.items.forEach((item, gIdx) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="3" class="empty-table-msg">Оценок пока нет. Добавьте их через настройки (⚙️).</td>`;
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = item.date || "—";
+        tr.appendChild(tdDate);
+
+        const tdVal = document.createElement("td");
+        const editBtn = document.createElement("button");
+        editBtn.className = "table-edit-btn";
+        editBtn.textContent = item.val;
+        editBtn.onclick = function() {
+          openGradeEditor(sIdx, gIdx);
+        };
+        tdVal.appendChild(editBtn);
+        tr.appendChild(tdVal);
+
+        const tdWeight = document.createElement("td");
+        tdWeight.textContent = (item.weight && item.weight > 0) ? item.weight : "1";
+        tr.appendChild(tdWeight);
+
         tbody.appendChild(tr);
-      } else {
-        subj.items.forEach((item, gIdx) => {
-          const tr = document.createElement("tr");
-
-          const tdDate = document.createElement("td");
-          tdDate.textContent = item.date || "—";
-          tr.appendChild(tdDate);
-
-          const tdVal = document.createElement("td");
-          const editBtn = document.createElement("button");
-          editBtn.className = "table-edit-btn";
-          editBtn.textContent = item.val;
-          editBtn.onclick = function() {
-            openGradeEditor(sIdx, gIdx);
-          };
-          tdVal.appendChild(editBtn);
-          tr.appendChild(tdVal);
-
-          const tdWeight = document.createElement("td");
-          tdWeight.textContent = (item.weight && item.weight > 0) ? item.weight : "1";
-          tr.appendChild(tdWeight);
-
-          tbody.appendChild(tr);
-        });
-      }
+      });
 
       document.getElementById("detailsModal").classList.add("open");
     }
