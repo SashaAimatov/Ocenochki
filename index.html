@@ -715,4 +715,169 @@
 
           grid.appendChild(btn);
         });
-    
+
+        card.appendChild(grid);
+        container.appendChild(card);
+      });
+    }
+
+    function openGradeEditor(sIdx, gIdx) {
+      activeSubjectIdx = sIdx;
+      activeGradeIdx = gIdx;
+      const subj = state.subjects[sIdx];
+      const item = subj.items[gIdx];
+
+      document.getElementById("editModalTitle").textContent = subj.name + ": изменить оценку";
+      document.getElementById("editGradeVal").value = item.val;
+      document.getElementById("editGradeWeight").value = (item.weight && item.weight > 0) ? item.weight : "";
+      document.getElementById("editGradeDate").value = item.date || "";
+      document.getElementById("deleteGradeBtn").style.display = "block";
+
+      document.getElementById("editGradeModal").classList.add("open");
+    }
+
+    function saveSelectedGrade() {
+      if (activeSubjectIdx === -1 || activeGradeIdx === -1) return;
+      const val = document.getElementById("editGradeVal").value.trim();
+      const weightRaw = document.getElementById("editGradeWeight").value.trim();
+      const date = document.getElementById("editGradeDate").value.trim();
+
+      if (!val) {
+        alert("Введи оценку!");
+        return;
+      }
+
+      const weight = weightRaw ? parseInt(weightRaw, 10) : 0;
+      const subj = state.subjects[activeSubjectIdx];
+      subj.items[activeGradeIdx] = { val, weight: isNaN(weight) ? 0 : weight, date: date || "—" };
+
+      saveState();
+      render();
+
+      if (document.getElementById("detailsModal").classList.contains("open")) {
+        openSubjectTable(activeSubjectIdx);
+      }
+
+      closeModal("editGradeModal");
+    }
+
+    function deleteSelectedGrade() {
+      if (activeSubjectIdx === -1 || activeGradeIdx === -1) return;
+      state.subjects[activeSubjectIdx].items.splice(activeGradeIdx, 1);
+      saveState();
+      render();
+
+      if (document.getElementById("detailsModal").classList.contains("open")) {
+        openSubjectTable(activeSubjectIdx);
+      }
+
+      closeModal("editGradeModal");
+    }
+
+    function openSubjectTable(sIdx) {
+      activeSubjectIdx = sIdx;
+      const subj = state.subjects[sIdx];
+      document.getElementById("modalSubjectTitle").textContent = subj.name;
+      document.getElementById("modalAvgScore").textContent = getWeightedAverage(subj.items);
+
+      const tbody = document.getElementById("detailsTableBody");
+      tbody.innerHTML = "";
+
+      subj.items.forEach((item, gIdx) => {
+        const tr = document.createElement("tr");
+
+        const tdDate = document.createElement("td");
+        tdDate.textContent = item.date || "—";
+        tr.appendChild(tdDate);
+
+        const tdVal = document.createElement("td");
+        const editBtn = document.createElement("button");
+        editBtn.className = "table-edit-btn";
+        editBtn.textContent = item.val;
+        editBtn.onclick = function() {
+          openGradeEditor(sIdx, gIdx);
+        };
+        tdVal.appendChild(editBtn);
+        tr.appendChild(tdVal);
+
+        const tdWeight = document.createElement("td");
+        tdWeight.textContent = (item.weight && item.weight > 0) ? item.weight : "1";
+        tr.appendChild(tdWeight);
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("detailsModal").classList.add("open");
+    }
+
+    function openSettingsModal() {
+      document.getElementById("settingPeriodInput").value = state.period;
+      const select = document.getElementById("newGradeSubject");
+      select.innerHTML = "";
+      state.subjects.forEach((subj, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        opt.textContent = subj.name;
+        select.appendChild(opt);
+      });
+      document.getElementById("newGradeVal").value = "";
+      document.getElementById("newGradeWeight").value = "";
+      document.getElementById("newGradeDate").value = "";
+      document.getElementById("settingsModal").classList.add("open");
+    }
+
+    function updatePeriod(val) {
+      state.period = val;
+      saveState();
+      document.getElementById("displayPeriod").textContent = val;
+    }
+
+    function addGradeFromSettings() {
+      const sIdx = parseInt(document.getElementById("newGradeSubject").value, 10);
+      const val = document.getElementById("newGradeVal").value.trim();
+      const weightRaw = document.getElementById("newGradeWeight").value.trim();
+      const date = document.getElementById("newGradeDate").value.trim();
+
+      if (!val) {
+        alert("Введи оценку!");
+        return;
+      }
+
+      const weight = weightRaw ? parseInt(weightRaw, 10) : 0;
+      state.subjects[sIdx].items.push({
+        val,
+        weight: isNaN(weight) ? 0 : weight,
+        date: date || "—"
+      });
+
+      saveState();
+      render();
+      closeModal("settingsModal");
+    }
+
+    function resetToDefaults() {
+      if (confirm("Сбросить все оценки к начальным со скриншотов?")) {
+        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        saveState();
+        render();
+        closeModal("settingsModal");
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    document.querySelectorAll(".modal-overlay").forEach(overlay => {
+      overlay.addEventListener("click", function(e) {
+        if (e.target === overlay) {
+          overlay.classList.remove("open");
+        }
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
+
