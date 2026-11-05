@@ -149,6 +149,40 @@
         </div>
     </div>
 
+    <!-- Edit Grade Modal -->
+    <div id="editGradeModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-[#1c1c1e] rounded-2xl w-full max-w-sm flex flex-col shadow-2xl border border-gray-800">
+            <div class="flex justify-between items-center p-5 border-b border-gray-800">
+                <h2 class="text-xl font-semibold">Изменить оценку</h2>
+                <button id="closeEditGradeModal" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Дата</label>
+                    <input type="text" id="editGradeDate" placeholder="Например: 05.09" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-400 mb-1">Оценка</label>
+                        <input type="text" id="editGradeValue" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500 text-center">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-400 mb-1">Вес</label>
+                        <input type="number" id="editGradeWeight" placeholder="Нет" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500 text-center">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button id="deleteEditGradeBtn" class="flex-1 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 font-medium py-3.5 rounded-xl transition-colors">
+                        Удалить
+                    </button>
+                    <button id="saveEditGradeBtn" class="flex-1 bg-[#1A73E8] hover:bg-blue-600 text-white font-medium py-3.5 rounded-xl transition-colors shadow-lg">
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const defaultAppStruct = {
             datePeriod: "31 августа — 8 ноября",
@@ -173,6 +207,8 @@
 
         let appData = {};
         let currentSettingsSubjectIndex = 0;
+        let editTargetSubjIdx = -1;
+        let editTargetGradeIdx = -1;
 
         // DOM 
         const subjectsContainer = document.getElementById('subjectsContainer');
@@ -197,6 +233,15 @@
         const tableModalTitle = document.getElementById('tableModalTitle');
         const tableModalAverage = document.getElementById('tableModalAverage');
         const tableModalBody = document.getElementById('tableModalBody');
+
+        // Edit Modal Elements
+        const editGradeModal = document.getElementById('editGradeModal');
+        const closeEditGradeModal = document.getElementById('closeEditGradeModal');
+        const editGradeDate = document.getElementById('editGradeDate');
+        const editGradeValue = document.getElementById('editGradeValue');
+        const editGradeWeight = document.getElementById('editGradeWeight');
+        const saveEditGradeBtn = document.getElementById('saveEditGradeBtn');
+        const deleteEditGradeBtn = document.getElementById('deleteEditGradeBtn');
 
         function loadData() {
             const savedData = localStorage.getItem('gradebookV3');
@@ -233,10 +278,15 @@
                 const gradesDiv = document.createElement('div');
                 gradesDiv.className = 'flex flex-wrap gap-2';
 
-                subject.grades.forEach(grade => {
+                subject.grades.forEach((grade, gradeIdx) => {
                     const box = document.createElement('div');
-                    box.className = 'w-[42px] h-[42px] border border-gray-600/60 rounded-xl flex items-center justify-center relative font-medium text-lg bg-transparent';
+                    box.className = 'w-[42px] h-[42px] border border-gray-600/60 rounded-xl flex items-center justify-center relative font-medium text-lg bg-transparent hover:bg-gray-800 transition-colors cursor-pointer';
                     box.textContent = grade.val;
+                    
+                    box.onclick = (e) => {
+                        e.stopPropagation();
+                        openEditGradeModal(idx, gradeIdx);
+                    };
                     
                     if (grade.weight) {
                         const badge = document.createElement('div');
@@ -288,8 +338,10 @@
             if (subject.grades.length === 0) {
                 tableModalBody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-500">Нет оценок</td></tr>`;
             } else {
-                subject.grades.forEach(grade => {
+                subject.grades.forEach((grade, gradeIdx) => {
                     const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-[#2c2c2e] cursor-pointer transition-colors';
+                    tr.onclick = () => openEditGradeModal(subjectIndex, gradeIdx);
                     tr.innerHTML = `
                         <td class="py-3 px-2 text-gray-300">${grade.date || '---'}</td>
                         <td class="py-3 px-2 text-center font-medium text-lg">${grade.val}</td>
@@ -404,6 +456,60 @@
             saveData();
             renderMainView();
             settingsModal.classList.add('hidden');
+        };
+
+        // --- Edit Grade Logic ---
+        function openEditGradeModal(subjIdx, gradeIdx) {
+            editTargetSubjIdx = subjIdx;
+            editTargetGradeIdx = gradeIdx;
+            
+            const grade = appData.subjects[subjIdx].grades[gradeIdx];
+            editGradeDate.value = grade.date || '';
+            editGradeValue.value = grade.val || '';
+            editGradeWeight.value = grade.weight || '';
+            
+            editGradeValue.classList.remove('border-red-500'); // reset error style
+            editGradeModal.classList.remove('hidden');
+        }
+
+        closeEditGradeModal.onclick = () => editGradeModal.classList.add('hidden');
+        editGradeModal.onclick = (e) => { if(e.target === editGradeModal) editGradeModal.classList.add('hidden'); };
+
+        saveEditGradeBtn.onclick = () => {
+            const val = editGradeValue.value.trim();
+            if (!val) {
+                editGradeValue.classList.add('border-red-500');
+                setTimeout(() => editGradeValue.classList.remove('border-red-500'), 500);
+                return;
+            }
+            
+            appData.subjects[editTargetSubjIdx].grades[editTargetGradeIdx] = {
+                date: editGradeDate.value.trim(),
+                val: val,
+                weight: editGradeWeight.value.trim()
+            };
+            
+            saveData();
+            renderMainView();
+            
+            // Если таблица была открыта, обновляем её
+            if (!tableModal.classList.contains('hidden')) {
+                openTableModal(editTargetSubjIdx);
+            }
+            
+            editGradeModal.classList.add('hidden');
+        };
+
+        deleteEditGradeBtn.onclick = () => {
+            appData.subjects[editTargetSubjIdx].grades.splice(editTargetGradeIdx, 1);
+            saveData();
+            renderMainView();
+            
+            if (!tableModal.classList.contains('hidden')) {
+                openTableModal(editTargetSubjIdx);
+            }
+            
+            editGradeModal.classList.add('hidden');
         };
 
         // Init
