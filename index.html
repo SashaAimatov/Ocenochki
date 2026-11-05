@@ -98,8 +98,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 14px;
       cursor: pointer;
+    }
+
+    .subject-header.has-grades {
+      padding-bottom: 14px;
     }
 
     .subject-header:active {
@@ -292,6 +295,13 @@
       cursor: pointer;
     }
 
+    .empty-table-msg {
+      color: #8e8e93;
+      text-align: center;
+      padding: 20px 0;
+      font-size: 14px;
+    }
+
     /* Поля ввода */
     .form-group {
       margin-bottom: 14px;
@@ -349,7 +359,7 @@
 
     .btn-secondary {
       background-color: #2c2c2e;
-      color: #ebebf5;
+      color: #ff453a;
       margin-top: 12px;
       width: 100%;
     }
@@ -423,22 +433,24 @@
       </div>
       <div class="avg-score-box">
         <span>Средний балл (с учетом веса):</span>
-        <span class="avg-score-val" id="modalAvgScore">0.00</span>
+        <span class="avg-score-val" id="modalAvgScore">—</span>
       </div>
-      <table class="details-table">
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Оценка (нажми)</th>
-            <th>Вес</th>
-          </tr>
-        </thead>
-        <tbody id="detailsTableBody"></tbody>
-      </table>
+      <div id="tableWrapper">
+        <table class="details-table" id="detailsTable">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Оценка (нажми)</th>
+              <th>Вес</th>
+            </tr>
+          </thead>
+          <tbody id="detailsTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Окно 3: Общие настройки -->
+  <!-- Окно 3: Настройки и добавление оценок -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-sheet">
       <div class="modal-header">
@@ -467,160 +479,32 @@
         <label>Дата</label>
         <input type="text" class="form-input" id="newGradeDate" placeholder="Например: 25 окт">
       </div>
-      <button class="btn btn-primary" style="width: 100%;" onclick="addGradeFromSettings()">Добавить</button>
-      <button class="btn btn-secondary" onclick="resetToDefaults()">Сбросить все оценки к исходным</button>
+      <button class="btn btn-primary" style="width: 100%;" onclick="addGradeFromSettings()">Добавить оценку</button>
+      <button class="btn btn-secondary" onclick="clearAllGrades()">Очистить все выставленные оценки</button>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "aimatov_grades_v3";
+    const STORAGE_KEY = "aimatov_grades_empty_v4";
 
-    const DEFAULT_STATE = {
+    const EMPTY_STATE = {
       period: "31 августа — 8 ноября",
       subjects: [
-        {
-          name: "Алгебра",
-          items: [
-            { val: "4", weight: 8, date: "05 сен" },
-            { val: "4", weight: 0, date: "10 сен" },
-            { val: "4", weight: 5, date: "17 сен" },
-            { val: "5", weight: 5, date: "24 сен" },
-            { val: "4", weight: 0, date: "01 окт" },
-            { val: "4", weight: 10, date: "08 окт" },
-            { val: "3", weight: 5, date: "15 окт" },
-            { val: "3", weight: 5, date: "22 окт" }
-          ]
-        },
-        {
-          name: "Англ. яз.",
-          items: [
-            { val: "4", weight: 5, date: "09 сен" },
-            { val: "4", weight: 5, date: "16 сен" },
-            { val: "5", weight: 5, date: "23 сен" }
-          ]
-        },
-        {
-          name: "Биология",
-          items: [
-            { val: "4", weight: 0, date: "08 сен" },
-            { val: "5", weight: 0, date: "22 сен" }
-          ]
-        },
-        {
-          name: "Вероятность и статистика",
-          items: [
-            { val: "3", weight: 5, date: "09 сен" },
-            { val: "3", weight: 5, date: "16 сен" }
-          ]
-        },
-        {
-          name: "География",
-          items: [
-            { val: "5", weight: 0, date: "04 сен" },
-            { val: "5", weight: 0, date: "18 сен" },
-            { val: "5", weight: 5, date: "02 окт" }
-          ]
-        },
-        {
-          name: "Геометрия",
-          items: [
-            { val: "3", weight: 7, date: "06 сен" },
-            { val: "3", weight: 5, date: "13 сен" },
-            { val: "4", weight: 5, date: "20 сен" },
-            { val: "3", weight: 3, date: "27 сен" },
-            { val: "5", weight: 0, date: "04 окт" }
-          ]
-        },
-        {
-          name: "Информатика",
-          items: [
-            { val: "5", weight: 0, date: "07 сен" },
-            { val: "4", weight: 5, date: "14 сен" },
-            { val: "5", weight: 5, date: "21 сен" },
-            { val: "5", weight: 3, date: "28 сен" },
-            { val: "5", weight: 0, date: "05 окт" },
-            { val: "5", weight: 0, date: "12 окт" },
-            { val: "5", weight: 0, date: "19 окт" },
-            { val: "5", weight: 0, date: "26 окт" },
-            { val: "5", weight: 0, date: "02 ноя" }
-          ]
-        },
-        {
-          name: "История",
-          items: [
-            { val: "5", weight: 0, date: "11 сен" },
-            { val: "3", weight: 5, date: "18 сен" },
-            { val: "4", weight: 5, date: "25 сен" },
-            { val: "4", weight: 0, date: "02 окт" }
-          ]
-        },
-        {
-          name: "Литература",
-          items: [
-            { val: "2/3", weight: 10, date: "04 сен" },
-            { val: "4", weight: 0, date: "11 сен" },
-            { val: "5", weight: 0, date: "18 сен" },
-            { val: "5", weight: 0, date: "25 сен" },
-            { val: "5", weight: 0, date: "02 окт" },
-            { val: "5", weight: 0, date: "09 окт" },
-            { val: "4", weight: 0, date: "16 окт" },
-            { val: "5", weight: 0, date: "23 окт" }
-          ]
-        },
-        {
-          name: "Обществознание",
-          items: [
-            { val: "4", weight: 7, date: "10 сен" },
-            { val: "5", weight: 5, date: "17 сен" },
-            { val: "3", weight: 0, date: "24 сен" },
-            { val: "5", weight: 5, date: "01 окт" }
-          ]
-        },
-        {
-          name: "Основы безопасности и защиты Родины",
-          items: [
-            { val: "5", weight: 0, date: "15 сен" },
-            { val: "5", weight: 0, date: "29 сен" },
-            { val: "5", weight: 0, date: "13 окт" }
-          ]
-        },
-        {
-          name: "Русский язык",
-          items: [
-            { val: "3", weight: 0, date: "03 сен" },
-            { val: "3", weight: 10, date: "12 сен" },
-            { val: "2", weight: 0, date: "19 сен" },
-            { val: "4", weight: 10, date: "26 сен" },
-            { val: "3", weight: 10, date: "05 окт" },
-            { val: "3", weight: 10, date: "17 окт" }
-          ]
-        },
-        {
-          name: "Физика",
-          items: [
-            { val: "4", weight: 7, date: "08 сен" },
-            { val: "4", weight: 5, date: "15 сен" },
-            { val: "5", weight: 0, date: "22 сен" },
-            { val: "5", weight: 0, date: "29 сен" }
-          ]
-        },
-        {
-          name: "Физкультура",
-          items: [
-            { val: "5", weight: 0, date: "05 сен" },
-            { val: "5", weight: 0, date: "12 сен" },
-            { val: "5", weight: 0, date: "19 сен" },
-            { val: "5", weight: 0, date: "26 сен" },
-            { val: "5", weight: 0, date: "03 окт" }
-          ]
-        },
-        {
-          name: "Химия",
-          items: [
-            { val: "5", weight: 5, date: "11 сен" },
-            { val: "3", weight: 0, date: "18 сен" }
-          ]
-        }
+        { name: "Алгебра", items: [] },
+        { name: "Англ. яз.", items: [] },
+        { name: "Биология", items: [] },
+        { name: "Вероятность и статистика", items: [] },
+        { name: "География", items: [] },
+        { name: "Геометрия", items: [] },
+        { name: "Информатика", items: [] },
+        { name: "История", items: [] },
+        { name: "Литература", items: [] },
+        { name: "Обществознание", items: [] },
+        { name: "Основы безопасности и защиты Родины", items: [] },
+        { name: "Русский язык", items: [] },
+        { name: "Физика", items: [] },
+        { name: "Физкультура", items: [] },
+        { name: "Химия", items: [] }
       ]
     };
 
@@ -633,7 +517,7 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) return JSON.parse(raw);
       } catch (e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      return JSON.parse(JSON.stringify(EMPTY_STATE));
     }
 
     function saveState() {
@@ -676,9 +560,8 @@
         const card = document.createElement("div");
         card.className = "subject-card";
 
-        // 1. Шапка предмета — открывает таблицу
         const header = document.createElement("div");
-        header.className = "subject-header";
+        header.className = "subject-header" + (subj.items.length > 0 ? " has-grades" : "");
         header.innerHTML = `
           <div class="subject-title">
             <span>${subj.name}</span>
@@ -690,33 +573,34 @@
         };
         card.appendChild(header);
 
-        // 2. Сетка с квадратиками оценок (без плюсов)
-        const grid = document.createElement("div");
-        grid.className = "grades-grid";
+        if (subj.items.length > 0) {
+          const grid = document.createElement("div");
+          grid.className = "grades-grid";
 
-        subj.items.forEach((item, gIdx) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "grade-badge";
-          btn.textContent = item.val;
+          subj.items.forEach((item, gIdx) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "grade-badge";
+            btn.textContent = item.val;
 
-          if (item.weight && Number(item.weight) > 0) {
-            const wSpan = document.createElement("span");
-            wSpan.className = "grade-weight";
-            wSpan.textContent = item.weight;
-            btn.appendChild(wSpan);
-          }
+            if (item.weight && Number(item.weight) > 0) {
+              const wSpan = document.createElement("span");
+              wSpan.className = "grade-weight";
+              wSpan.textContent = item.weight;
+              btn.appendChild(wSpan);
+            }
 
-          // Клик по оценке открывает редактор этой оценки
-          btn.onclick = function(event) {
-            event.stopPropagation();
-            openGradeEditor(sIdx, gIdx);
-          };
+            btn.onclick = function(event) {
+              event.stopPropagation();
+              openGradeEditor(sIdx, gIdx);
+            };
 
-          grid.appendChild(btn);
-        });
+            grid.appendChild(btn);
+          });
 
-        card.appendChild(grid);
+          card.appendChild(grid);
+        }
+
         container.appendChild(card);
       });
     }
@@ -731,7 +615,6 @@
       document.getElementById("editGradeVal").value = item.val;
       document.getElementById("editGradeWeight").value = (item.weight && item.weight > 0) ? item.weight : "";
       document.getElementById("editGradeDate").value = item.date || "";
-      document.getElementById("deleteGradeBtn").style.display = "block";
 
       document.getElementById("editGradeModal").classList.add("open");
     }
@@ -783,29 +666,35 @@
       const tbody = document.getElementById("detailsTableBody");
       tbody.innerHTML = "";
 
-      subj.items.forEach((item, gIdx) => {
+      if (subj.items.length === 0) {
         const tr = document.createElement("tr");
-
-        const tdDate = document.createElement("td");
-        tdDate.textContent = item.date || "—";
-        tr.appendChild(tdDate);
-
-        const tdVal = document.createElement("td");
-        const editBtn = document.createElement("button");
-        editBtn.className = "table-edit-btn";
-        editBtn.textContent = item.val;
-        editBtn.onclick = function() {
-          openGradeEditor(sIdx, gIdx);
-        };
-        tdVal.appendChild(editBtn);
-        tr.appendChild(tdVal);
-
-        const tdWeight = document.createElement("td");
-        tdWeight.textContent = (item.weight && item.weight > 0) ? item.weight : "1";
-        tr.appendChild(tdWeight);
-
+        tr.innerHTML = `<td colspan="3" class="empty-table-msg">Оценок пока нет. Добавьте их через настройки (⚙️).</td>`;
         tbody.appendChild(tr);
-      });
+      } else {
+        subj.items.forEach((item, gIdx) => {
+          const tr = document.createElement("tr");
+
+          const tdDate = document.createElement("td");
+          tdDate.textContent = item.date || "—";
+          tr.appendChild(tdDate);
+
+          const tdVal = document.createElement("td");
+          const editBtn = document.createElement("button");
+          editBtn.className = "table-edit-btn";
+          editBtn.textContent = item.val;
+          editBtn.onclick = function() {
+            openGradeEditor(sIdx, gIdx);
+          };
+          tdVal.appendChild(editBtn);
+          tr.appendChild(tdVal);
+
+          const tdWeight = document.createElement("td");
+          tdWeight.textContent = (item.weight && item.weight > 0) ? item.weight : "1";
+          tr.appendChild(tdWeight);
+
+          tbody.appendChild(tr);
+        });
+      }
 
       document.getElementById("detailsModal").classList.add("open");
     }
@@ -813,6 +702,7 @@
     function openSettingsModal() {
       document.getElementById("settingPeriodInput").value = state.period;
       const select = document.getElementById("newGradeSubject");
+      const prevSelected = select.value;
       select.innerHTML = "";
       state.subjects.forEach((subj, idx) => {
         const opt = document.createElement("option");
@@ -820,6 +710,8 @@
         opt.textContent = subj.name;
         select.appendChild(opt);
       });
+      if (prevSelected !== "") select.value = prevSelected;
+
       document.getElementById("newGradeVal").value = "";
       document.getElementById("newGradeWeight").value = "";
       document.getElementById("newGradeDate").value = "";
@@ -852,12 +744,14 @@
 
       saveState();
       render();
-      closeModal("settingsModal");
+      document.getElementById("newGradeVal").value = "";
+      document.getElementById("newGradeWeight").value = "";
+      document.getElementById("newGradeDate").value = "";
     }
 
-    function resetToDefaults() {
-      if (confirm("Сбросить все оценки к начальным со скриншотов?")) {
-        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    function clearAllGrades() {
+      if (confirm("Удалить вообще все выставленные оценки по всем предметам?")) {
+        state.subjects.forEach(s => s.items = []);
         saveState();
         render();
         closeModal("settingsModal");
@@ -880,4 +774,3 @@
   </script>
 </body>
 </html>
-
