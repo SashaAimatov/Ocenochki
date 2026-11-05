@@ -1,520 +1,715 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Оценки</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #ffffff;
-            -webkit-tap-highlight-color: transparent;
-        }
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-        /* Custom styling for select to look decent in dark mode */
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            background-size: 1em;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оценки</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 16px 16px 80px 16px;
+      user-select: none;
+    }
+
+    /* Верхняя шапка */
+    .header {
+      position: relative;
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header .period {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+
+    .settings-btn {
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      background: none;
+      border: none;
+      color: #8e8e93;
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    .settings-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    /* Карточки предметов */
+    .subject-card {
+      background-color: #1c1c1e;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .subject-card:active {
+      background-color: #242426;
+    }
+
+    .subject-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .subject-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subject-title .arrow {
+      color: #636366;
+      font-size: 14px;
+    }
+
+    /* Сетка оценок */
+    .grades-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .grade-badge {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      background-color: #15171e;
+      border: 1px solid #282f44;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.1s ease;
+    }
+
+    .grade-badge:hover {
+      border-color: #3e4a6d;
+    }
+
+    .grade-badge:active {
+      transform: scale(0.92);
+      border-color: #007aff;
+    }
+
+    .grade-weight {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      background-color: #0a84ff;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 6px;
+      min-width: 14px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Нижняя навигация */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 58px;
+      background-color: #000000;
+      border-top: 1px solid #1c1c1e;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    .nav-item {
+      font-size: 13px;
+      color: #8e8e93;
+      font-weight: 500;
+      cursor: default;
+    }
+
+    .nav-item.active {
+      color: #ff9f0a;
+      font-weight: 600;
+    }
+
+    /* Модальные окна */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      background-color: #1c1c1e;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 20px 20px 0 0;
+      padding: 20px 18px 32px 18px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.6);
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #8e8e93;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* Таблица оценок */
+    .avg-score-box {
+      background-color: #2c2c2e;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .avg-score-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #30d158;
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .details-table th {
+      text-align: left;
+      padding: 8px 6px;
+      color: #8e8e93;
+      border-bottom: 1px solid #2c2c2e;
+    }
+
+    .details-table td {
+      padding: 10px 6px;
+      border-bottom: 1px solid #2c2c2e;
+    }
+
+    .table-grade-click {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #15171e;
+      border: 1px solid #282f44;
+      border-radius: 6px;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 6px;
+      font-weight: 600;
+      color: #0a84ff;
+    }
+
+    /* Формы */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #8e8e93;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background-color: #2c2c2e;
+      border: 1px solid #3a3a3c;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #ffffff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #0a84ff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background-color: #0a84ff;
+      color: #ffffff;
+    }
+
+    .btn-danger {
+      background-color: #ff453a;
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #2c2c2e;
+      color: #ffffff;
+    }
+  </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden">
+<body>
 
-    <!-- Header -->
-    <header class="pt-12 pb-4 px-4 sticky top-0 bg-black z-10 flex flex-col items-center relative">
-        <h1 class="text-2xl font-semibold tracking-wide">Оценки</h1>
-        <p id="headerDateRange" class="text-gray-400 text-sm mt-1">31 августа — 8 ноября</p>
+  <div class="header">
+    <h1>Оценки</h1>
+    <div class="period" id="displayPeriod">31 августа — 8 ноября</div>
+    <button class="settings-btn" id="openSettingsBtn" aria-label="Настройки">
+      <svg viewBox="0 0 24 24">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="subjectsContainer"></div>
+
+  <div class="nav-bar">
+    <div class="nav-item">Лента</div>
+    <div class="nav-item">Расписание</div>
+    <div class="nav-item">Задания</div>
+    <div class="nav-item active">Оценки</div>
+    <div class="nav-item">АЛЕКСАН...</div>
+  </div>
+
+  <!-- Модальное окно: Таблица оценок предмета -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="modalSubjectTitle">Предмет</h2>
+        <button class="close-btn" id="closeDetailsModal">&times;</button>
+      </div>
+      <div class="avg-score-box">
+        <span>Средневзвешенный балл:</span>
+        <span class="avg-score-val" id="modalAvgScore">0.00</span>
+      </div>
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Оценка</th>
+            <th>Вес</th>
+          </tr>
+        </thead>
+        <tbody id="detailsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Быстрое редактирование оценки -->
+  <div class="modal-overlay" id="editGradeModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2>Изменить оценку</h2>
+        <button class="close-btn" id="closeEditGradeModal">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="text" class="form-input" id="editGradeDate" placeholder="например: 12 окт">
+      </div>
+      <div class="form-group">
+        <label>Оценка</label>
+        <input type="text" class="form-input" id="editGradeVal" placeholder="например: 5 или 2/3">
+      </div>
+      <div class="form-group">
+        <label>Вес (коэффициент)</label>
+        <input type="number" class="form-input" id="editGradeWeight" placeholder="например: 5 или 10">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="deleteGradeBtn">Удалить</button>
+        <button class="btn btn-primary" id="saveGradeBtn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Настройки -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2>Настройки</h2>
+        <button class="close-btn" id="closeSettingsModal">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Период (в шапке)</label>
+        <input type="text" class="form-input" id="settingPeriodInput">
+      </div>
+      <hr style="border: none; border-top: 1px solid #2c2c2e; margin: 16px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Добавить новую оценку</h3>
+      <div class="form-group">
+        <label>Предмет</label>
+        <select class="form-select" id="newGradeSubject"></select>
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="text" class="form-input" id="newGradeDate" placeholder="например: 05 ноя">
+      </div>
+      <div class="form-group">
+        <label>Оценка</label>
+        <input type="text" class="form-input" id="newGradeVal" placeholder="например: 5 или 4/5">
+      </div>
+      <div class="form-group">
+        <label>Вес</label>
+        <input type="number" class="form-input" id="newGradeWeight" placeholder="например: 5 или 10">
+      </div>
+      <button class="btn btn-primary" id="addNewGradeBtn" style="width: 100%;">Добавить оценку</button>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_DATA = {
+      period: "31 августа — 8 ноября",
+      subjects: [
+        {
+          name: "Русский язык",
+          items: [
+            { val: "3", weight: 0, date: "03 сен" },
+            { val: "3", weight: 10, date: "12 сен" },
+            { val: "2", weight: 0, date: "19 сен" },
+            { val: "4", weight: 10, date: "26 сен" },
+            { val: "3", weight: 10, date: "05 окт" },
+            { val: "3", weight: 10, date: "17 окт" }
+          ]
+        },
+        {
+          name: "Физика",
+          items: [
+            { val: "4", weight: 7, date: "08 сен" },
+            { val: "4", weight: 5, date: "15 сен" },
+            { val: "5", weight: 0, date: "22 сен" },
+            { val: "5", weight: 0, date: "29 сен" }
+          ]
+        },
+        {
+          name: "Физкультура",
+          items: [
+            { val: "5", weight: 0, date: "05 сен" },
+            { val: "5", weight: 0, date: "12 сен" },
+            { val: "5", weight: 0, date: "19 сен" },
+            { val: "5", weight: 0, date: "26 сен" },
+            { val: "5", weight: 0, date: "03 окт" }
+          ]
+        },
+        {
+          name: "Химия",
+          items: [
+            { val: "5", weight: 5, date: "11 сен" },
+            { val: "3", weight: 0, date: "18 сен" }
+          ]
+        },
+        {
+          name: "Вероятность и статистика",
+          items: [
+            { val: "3", weight: 5, date: "09 сен" },
+            { val: "3", weight: 5, date: "16 сен" }
+          ]
+        },
+        {
+          name: "География",
+          items: [
+            { val: "5", weight: 0, date: "04 сен" },
+            { val: "5", weight: 0, date: "18 сен" },
+            { val: "5", weight: 5, date: "02 окт" }
+          ]
+        },
+        {
+          name: "Геометрия",
+          items: [
+            { val: "3", weight: 7, date: "06 сен" },
+            { val: "3", weight: 5, date: "13 сен" },
+            { val: "4", weight: 5, date: "20 сен" },
+            { val: "3", weight: 3, date: "27 сен" },
+            { val: "5", weight: 0, date: "04 окт" }
+          ]
+        },
+        {
+          name: "Информатика",
+          items: [
+            { val: "5", weight: 0, date: "07 сен" },
+            { val: "4", weight: 5, date: "14 сен" },
+            { val: "5", weight: 5, date: "21 сен" },
+            { val: "5", weight: 3, date: "28 сен" },
+            { val: "5", weight: 0, date: "05 окт" },
+            { val: "5", weight: 0, date: "12 окт" },
+            { val: "5", weight: 0, date: "19 окт" },
+            { val: "5", weight: 0, date: "26 окт" },
+            { val: "5", weight: 0, date: "02 ноя" }
+          ]
+        },
+        {
+          name: "Алгебра",
+          items: [
+            { val: "4", weight: 8, date: "05 сен" },
+            { val: "4", weight: 0, date: "10 сен" },
+            { val: "4", weight: 5, date: "17 сен" },
+            { val: "5", weight: 5, date: "24 сен" },
+            { val: "4", weight: 0, date: "01 окт" },
+            { val: "4", weight: 10, date: "08 окт" },
+            { val: "3", weight: 5, date: "15 окт" },
+            { val: "3", weight: 5, date: "22 окт" }
+          ]
+        },
+        {
+          name: "Англ. яз.",
+          items: [
+            { val: "4", weight: 5, date: "09 сен" },
+            { val: "4", weight: 5, date: "16 сен" },
+            { val: "5", weight: 5, date: "23 сен" }
+          ]
+        },
+        {
+          name: "Биология",
+          items: [
+            { val: "4", weight: 0, date: "08 сен" },
+            { val: "5", weight: 0, date: "22 сен" }
+          ]
+        },
+        {
+          name: "История",
+          items: [
+            { val: "5", weight: 0, date: "11 сен" },
+            { val: "3", weight: 5, date: "18 сен" },
+            { val: "4", weight: 5, date: "25 сен" },
+            { val: "4", weight: 0, date: "02 окт" }
+          ]
+        },
+        {
+          name: "Литература",
+          items: [
+            { val: "2/3", weight: 10, date: "04 сен" },
+            { val: "4", weight: 0, date: "11 сен" },
+            { val: "5", weight: 0, date: "18 сен" },
+            { val: "5", weight: 0, date: "25 сен" },
+            { val: "5", weight: 0, date: "02 окт" },
+            { val: "5", weight: 0, date: "09 окт" },
+            { val: "4", weight: 0, date: "16 окт" },
+            { val: "5", weight: 0, date: "23 окт" }
+          ]
+        },
+        {
+          name: "Обществознание",
+          items: [
+            { val: "4", weight: 7, date: "10 сен" },
+            { val: "5", weight: 5, date: "17 сен" },
+            { val: "3", weight: 0, date: "24 сен" },
+            { val: "5", weight: 5, date: "01 окт" }
+          ]
+        },
+        {
+          name: "Основы безопасности и защиты Родины",
+          items: [
+            { val: "5", weight: 0, date: "15 сен" },
+            { val: "5", weight: 0, date: "29 сен" },
+            { val: "5", weight: 0, date: "13 окт" }
+          ]
+        }
+      ]
+    };
+
+    let appData = loadData();
+    let currentEdit = { subjectIndex: -1, gradeIndex: -1 };
+    let currentOpenSubjectIndex = -1;
+
+    function loadData() {
+      const saved = localStorage.getItem("asg_grades_storage");
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return DEFAULT_DATA;
+    }
+
+    function saveData() {
+      localStorage.setItem("asg_grades_storage", JSON.stringify(appData));
+    }
+
+    function parseNumericGrade(valStr) {
+      if (!valStr) return null;
+      if (String(valStr).includes("/")) {
+        const parts = String(valStr).split("/");
+        const num1 = parseFloat(parts[0]);
+        const num2 = parseFloat(parts[1]);
+        if (!isNaN(num1) && !isNaN(num2)) {
+          return (num1 + num2) / 2;
+        }
+      }
+      const num = parseFloat(valStr);
+      return isNaN(num) ? null : num;
+    }
+
+    function calcWeightedAverage(items) {
+      let totalWeighted = 0;
+      let totalWeight = 0;
+      let count = 0;
+
+      items.forEach(it => {
+        const gradeVal = parseNumericGrade(it.val);
+        if (gradeVal !== null) {
+          const w = (it.weight && it.weight > 0) ? it.weight : 1;
+          totalWeighted += gradeVal * w;
+          totalWeight += w;
+          count++;
+        }
+      });
+
+      if (totalWeight === 0 || count === 0) return "—";
+      return (totalWeighted / totalWeight).toFixed(2);
+    }
+
+    function renderMainView() {
+      document.getElementById("displayPeriod").textContent = appData.period;
+      const container = document.getElementById("subjectsContainer");
+      container.innerHTML = "";
+
+      appData.subjects.forEach((subj, sIdx) => {
+        const card = document.createElement("div");
+        card.className = "subject-card";
         
-        <!-- Settings Button -->
-        <button id="settingsBtn" class="absolute right-4 top-12 text-gray-400 p-2 hover:text-white transition-colors cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </button>
-    </header>
+        // Клик по карточке открывает таблицу предмета
+        card.addEventListener("click", () => {
+          openDetailsModal(sIdx);
+        });
 
-    <!-- Main Content -->
-    <main id="subjectsContainer" class="flex-1 overflow-y-auto px-4 pb-20 pt-2 space-y-3">
-        <!-- Subjects injected via JS -->
-    </main>
+        const header = document.createElement("div");
+        header.className = "subject-header";
+        header.innerHTML = `
+          <div class="subject-title">
+            <span>${subj.name}</span>
+            <span class="arrow">&gt;</span>
+          </div>
+        `;
+        card.appendChild(header);
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 w-full flex justify-between items-center px-2 py-4 bg-[#1c1c1e] z-20 text-[11px] sm:text-xs text-gray-500 shadow-[0_-4px_10px_rgba(0,0,0,0.5)] border-t border-gray-900">
-        <div class="flex-1 text-center truncate">Лента</div>
-        <div class="flex-1 text-center truncate">Расписание</div>
-        <div class="flex-1 text-center truncate">Задания</div>
-        <div class="flex-1 text-center truncate text-[#ffb800] font-semibold">Оценки</div>
-        <div class="flex-1 text-center truncate uppercase">АЛЕКСАН...</div>
-    </nav>
+        const grid = document.createElement("div");
+        grid.className = "grades-grid";
 
-    <!-- Table Modal -->
-    <div id="tableModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-[#1c1c1e] rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl border border-gray-800">
-            <div class="flex justify-between items-center p-5 border-b border-gray-800 shrink-0">
-                <h2 id="tableModalTitle" class="text-xl font-semibold">Предмет</h2>
-                <button id="closeTableModal" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            <div class="px-5 pt-4 pb-0 shrink-0">
-                <div class="bg-[#2c2c2e] p-3.5 rounded-xl flex justify-between items-center border border-gray-700">
-                    <span class="text-gray-400 text-sm font-medium">Средний балл</span>
-                    <span id="tableModalAverage" class="text-xl font-bold text-white">4.50</span>
-                </div>
-            </div>
-            <div class="p-5 overflow-y-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-gray-400 border-b border-gray-800 text-sm">
-                            <th class="py-3 px-2 font-medium">Дата</th>
-                            <th class="py-3 px-2 font-medium text-center">Оценка</th>
-                            <th class="py-3 px-2 font-medium text-center">Вес</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableModalBody" class="divide-y divide-gray-800 text-sm">
-                        <!-- rows -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        subj.items.forEach((item, gIdx) => {
+          const badge = document.createElement("div");
+          badge.className = "grade-badge";
+          badge.textContent = item.val;
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-[#1c1c1e] rounded-2xl w-full max-w-md max-h-[90vh] h-[85vh] flex flex-col shadow-2xl border border-gray-800">
-            <div class="flex justify-between items-center p-5 border-b border-gray-800 shrink-0">
-                <h2 class="text-xl font-semibold">Настройки</h2>
-                <button id="closeSettingsModal" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            
-            <div class="p-5 overflow-y-auto flex-1 flex flex-col gap-5">
-                <!-- Period Setting -->
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Учебный период</label>
-                    <input type="text" id="datePeriodInput" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500">
-                </div>
+          if (item.weight && item.weight > 0) {
+            const wBadge = document.createElement("span");
+            wBadge.className = "grade-weight";
+            wBadge.textContent = item.weight;
+            badge.appendChild(wBadge);
+          }
 
-                <!-- Subject Selection -->
-                <div>
-                    <label class="block text-sm text-gray-400 mb-2">Выбор предмета</label>
-                    <select id="subjectSelect" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500">
-                        <!-- Options injected via JS -->
-                    </select>
-                </div>
+          // Изоляция клика: останавливаем всплытие, чтобы открывалось именно окно редактирования оценки
+          badge.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openEditGradeModal(sIdx, gIdx);
+          });
 
-                <!-- Add Grade Form -->
-                <div class="bg-[#2c2c2e] p-4 rounded-xl border border-gray-700">
-                    <label class="block text-sm text-gray-300 font-medium mb-3">Добавить оценку</label>
-                    <div class="flex gap-2 mb-3">
-                        <div class="flex-1">
-                            <input type="text" id="newGradeDate" placeholder="Дата (05.09)" class="w-full bg-[#1c1c1e] text-white p-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-sm">
-                        </div>
-                        <div class="w-[70px]">
-                            <input type="text" id="newGradeValue" placeholder="Оценка" class="w-full bg-[#1c1c1e] text-white p-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-sm text-center">
-                        </div>
-                        <div class="w-[60px]">
-                            <input type="number" id="newGradeWeight" placeholder="Вес" class="w-full bg-[#1c1c1e] text-white p-2.5 rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-sm text-center">
-                        </div>
-                    </div>
-                    <button id="addGradeBtn" class="w-full bg-[#1A73E8] hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-colors text-sm">
-                        Добавить
-                    </button>
-                </div>
+          grid.appendChild(badge);
+        });
 
-                <!-- Existing Grades List -->
-                <div class="flex-1 flex flex-col min-h-[150px]">
-                    <label class="block text-sm text-gray-400 mb-2">Список оценок предмета</label>
-                    <div id="settingsGradesList" class="flex-1 bg-[#2c2c2e] rounded-xl border border-gray-700 p-2 overflow-y-auto space-y-2">
-                        <!-- Grade items injected via JS -->
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-4 border-t border-gray-800 shrink-0">
-                <button id="saveSettingsBtn" class="w-full bg-white text-black font-semibold py-3.5 rounded-xl transition-colors shadow-lg active:scale-[0.98]">
-                    Готово
-                </button>
-            </div>
-        </div>
-    </div>
+        card.appendChild(grid);
+        container.appendChild(card);
+      });
+    }
 
-    <!-- Edit Grade Modal -->
-    <div id="editGradeModal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-[#1c1c1e] rounded-2xl w-full max-w-sm flex flex-col shadow-2xl border border-gray-800">
-            <div class="flex justify-between items-center p-5 border-b border-gray-800">
-                <h2 class="text-xl font-semibold">Изменить оценку</h2>
-                <button id="closeEditGradeModal" class="text-gray-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            <div class="p-5 flex flex-col gap-4">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Дата</label>
-                    <input type="text" id="editGradeDate" placeholder="Например: 05.09" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500">
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-400 mb-1">Оценка</label>
-                        <input type="text" id="editGradeValue" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500 text-center">
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-400 mb-1">Вес</label>
-                        <input type="number" id="editGradeWeight" placeholder="Нет" class="w-full bg-[#2c2c2e] text-white p-3 rounded-xl border border-gray-700 focus:outline-none focus:border-blue-500 text-center">
-                    </div>
-                </div>
-                <div class="flex gap-3 mt-4">
-                    <button id="deleteEditGradeBtn" class="flex-1 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 font-medium py-3.5 rounded-xl transition-colors">
-                        Удалить
-                    </button>
-                    <button id="saveEditGradeBtn" class="flex-1 bg-[#1A73E8] hover:bg-blue-600 text-white font-medium py-3.5 rounded-xl transition-colors shadow-lg">
-                        Сохранить
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    function openDetailsModal(sIdx) {
+      currentOpenSubjectIndex = sIdx;
+      const subj = appData.subjects[sIdx];
+      document.getElementById("modalSubjectTitle").textContent = subj.name;
+      document.getElementById("modalAvgScore").textContent = calcWeightedAverage(subj.items);
 
-    <script>
-        const defaultAppStruct = {
-            datePeriod: "31 августа — 8 ноября",
-            subjects: [
-                { name: "Русский язык", grades: [{date: "01.09", val: "3", weight: "10"}, {date: "05.09", val: "3", weight: "10"}, {date: "08.09", val: "2", weight: ""}, {date: "12.09", val: "4", weight: "10"}, {date: "15.09", val: "3", weight: "10"}] },
-                { name: "Физика", grades: [{date: "02.09", val: "4", weight: "7"}, {date: "06.09", val: "4", weight: "5"}, {date: "10.09", val: "5", weight: ""}] },
-                { name: "Физкультура", grades: [{date: "01.09", val: "5", weight: ""}, {date: "05.09", val: "5", weight: ""}, {date: "12.09", val: "5", weight: ""}, {date: "18.09", val: "5", weight: ""}] },
-                { name: "Химия", grades: [{date: "04.09", val: "5", weight: "5"}, {date: "11.09", val: "3", weight: ""}] },
-                { name: "Вероятность и статистика", grades: [{date: "03.09", val: "3", weight: "5"}, {date: "10.09", val: "3", weight: "5"}] },
-                { name: "География", grades: [{date: "05.09", val: "5", weight: ""}, {date: "12.09", val: "5", weight: ""}] },
-                { name: "Геометрия", grades: [{date: "01.09", val: "3", weight: "7"}, {date: "04.09", val: "3", weight: "5"}] },
-                { name: "Информатика", grades: [{date: "02.09", val: "5", weight: ""}, {date: "05.09", val: "4", weight: "5"}] },
-                { name: "Алгебра", grades: [{date: "01.09", val: "4", weight: "8"}, {date: "03.09", val: "4", weight: ""}] },
-                { name: "Англ. яз.", grades: [{date: "02.09", val: "4", weight: "5"}, {date: "07.09", val: "4", weight: "5"}] },
-                { name: "Биология", grades: [{date: "05.09", val: "4", weight: ""}, {date: "19.09", val: "5", weight: ""}] },
-                { name: "История", grades: [{date: "04.09", val: "5", weight: ""}, {date: "11.09", val: "3", weight: "5"}] },
-                { name: "Литература", grades: [{date: "01.09", val: "2/3", weight: "10"}, {date: "04.09", val: "4", weight: ""}] },
-                { name: "Обществознание", grades: [{date: "03.09", val: "4", weight: "7"}, {date: "10.09", val: "5", weight: "5"}] },
-                { name: "Основы безопасности и защиты Родины", grades: [{date: "05.09", val: "5", weight: ""}] }
-            ]
-        };
+      const tbody = document.getElementById("detailsTableBody");
+      tbody.innerHTML = "";
 
-        let appData = {};
-        let currentSettingsSubjectIndex = 0;
-        let editTargetSubjIdx = -1;
-        let editTargetGradeIdx = -1;
+      subj.items.forEach((it, gIdx) => {
+        const tr = document.createElement("tr");
 
-        // DOM 
-        const subjectsContainer = document.getElementById('subjectsContainer');
-        const headerDateRange = document.getElementById('headerDateRange');
-        
-        // Settings Elements
-        const settingsModal = document.getElementById('settingsModal');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const closeSettingsModal = document.getElementById('closeSettingsModal');
-        const datePeriodInput = document.getElementById('datePeriodInput');
-        const subjectSelect = document.getElementById('subjectSelect');
-        const settingsGradesList = document.getElementById('settingsGradesList');
-        const addGradeBtn = document.getElementById('addGradeBtn');
-        const newGradeDate = document.getElementById('newGradeDate');
-        const newGradeValue = document.getElementById('newGradeValue');
-        const newGradeWeight = document.getElementById('newGradeWeight');
-        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const tdDate = document.createElement("td");
+        tdDate.textContent = it.date || "—";
+        tr.appendChild(tdDate);
 
-        // Table Elements
-        const tableModal = document.getElementById('tableModal');
-        const closeTableModalBtn = document.getElementById('closeTableModal');
-        const tableModalTitle = document.getElementById('tableModalTitle');
-        const tableModalAverage = document.getElementById('tableModalAverage');
-        const tableModalBody = document.getElementById('tableModalBody');
-
-        // Edit Modal Elements
-        const editGradeModal = document.getElementById('editGradeModal');
-        const closeEditGradeModal = document.getElementById('closeEditGradeModal');
-        const editGradeDate = document.getElementById('editGradeDate');
-        const editGradeValue = document.getElementById('editGradeValue');
-        const editGradeWeight = document.getElementById('editGradeWeight');
-        const saveEditGradeBtn = document.getElementById('saveEditGradeBtn');
-        const deleteEditGradeBtn = document.getElementById('deleteEditGradeBtn');
-
-        function loadData() {
-            const savedData = localStorage.getItem('gradebookV3');
-            if (savedData) {
-                appData = JSON.parse(savedData);
-            } else {
-                appData = JSON.parse(JSON.stringify(defaultAppStruct));
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('gradebookV3', JSON.stringify(appData));
-        }
-
-        function renderMainView() {
-            headerDateRange.textContent = appData.datePeriod;
-            subjectsContainer.innerHTML = '';
-            
-            appData.subjects.forEach((subject, idx) => {
-                const card = document.createElement('div');
-                card.className = 'bg-[#1c1c1e] rounded-2xl p-4 shadow-sm cursor-pointer active:scale-[0.98] transition-transform';
-                card.onclick = () => openTableModal(idx);
-                
-                const header = document.createElement('div');
-                header.className = 'flex items-center text-[15px] font-medium mb-3';
-                header.innerHTML = `
-                    <span>${subject.name}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                    </svg>
-                `;
-                card.appendChild(header);
-
-                const gradesDiv = document.createElement('div');
-                gradesDiv.className = 'flex flex-wrap gap-2';
-
-                subject.grades.forEach((grade, gradeIdx) => {
-                    const box = document.createElement('div');
-                    box.className = 'w-[42px] h-[42px] border border-gray-600/60 rounded-xl flex items-center justify-center relative font-medium text-lg bg-transparent hover:bg-gray-800 transition-colors cursor-pointer';
-                    box.textContent = grade.val;
-                    
-                    box.onclick = (e) => {
-                        e.stopPropagation();
-                        openEditGradeModal(idx, gradeIdx);
-                    };
-                    
-                    if (grade.weight) {
-                        const badge = document.createElement('div');
-                        badge.className = 'absolute -bottom-[6px] -right-[6px] bg-[#1A73E8] text-white text-[10px] w-[18px] h-[18px] rounded-full flex items-center justify-center font-bold';
-                        badge.textContent = grade.weight;
-                        box.appendChild(badge);
-                    }
-                    gradesDiv.appendChild(box);
-                });
-                
-                card.appendChild(gradesDiv);
-                subjectsContainer.appendChild(card);
-            });
-        }
-
-        // Table Modal
-        function openTableModal(subjectIndex) {
-            const subject = appData.subjects[subjectIndex];
-            tableModalTitle.textContent = subject.name;
-            tableModalBody.innerHTML = '';
-            
-            // Рассчитываем средний балл с учетом веса
-            let totalSum = 0;
-            let totalWeight = 0;
-            subject.grades.forEach(g => {
-                // Извлекаем первое число из оценки (на случай формата "2/3")
-                let valMatch = g.val.match(/[\d.]+/);
-                if (valMatch) {
-                    let val = parseFloat(valMatch[0]);
-                    if (!isNaN(val)) {
-                        // Если вес не указан, считаем его равным 1
-                        let w = g.weight ? parseInt(g.weight) : 1; 
-                        if (!isNaN(w) && w > 0) {
-                            totalSum += val * w;
-                            totalWeight += w;
-                        }
-                    }
-                }
-            });
-            
-            if (totalWeight > 0) {
-                tableModalAverage.textContent = (totalSum / totalWeight).toFixed(2);
-                tableModalAverage.className = "text-xl font-bold text-white";
-            } else {
-                tableModalAverage.textContent = '—';
-                tableModalAverage.className = "text-xl font-bold text-gray-500";
-            }
-            
-            if (subject.grades.length === 0) {
-                tableModalBody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-gray-500">Нет оценок</td></tr>`;
-            } else {
-                subject.grades.forEach((grade, gradeIdx) => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-[#2c2c2e] cursor-pointer transition-colors';
-                    tr.onclick = () => openEditGradeModal(subjectIndex, gradeIdx);
-                    tr.innerHTML = `
-                        <td class="py-3 px-2 text-gray-300">${grade.date || '---'}</td>
-                        <td class="py-3 px-2 text-center font-medium text-lg">${grade.val}</td>
-                        <td class="py-3 px-2 text-center">
-                            ${grade.weight ? `<span class="bg-[#1A73E8] text-white text-xs py-1 px-2 rounded-lg font-bold">${grade.weight}</span>` : '<span class="text-gray-600">-</span>'}
-                        </td>
-                    `;
-                    tableModalBody.appendChild(tr);
-                });
-            }
-            tableModal.classList.remove('hidden');
-        }
-
-        closeTableModalBtn.onclick = () => tableModal.classList.add('hidden');
-        tableModal.onclick = (e) => { if(e.target === tableModal) tableModal.classList.add('hidden'); };
-
-        // Settings Modal
-        settingsBtn.onclick = () => {
-            datePeriodInput.value = appData.datePeriod;
-            
-            // Populate select
-            subjectSelect.innerHTML = '';
-            appData.subjects.forEach((subj, idx) => {
-                const opt = document.createElement('option');
-                opt.value = idx;
-                opt.textContent = subj.name;
-                subjectSelect.appendChild(opt);
-            });
-            subjectSelect.value = currentSettingsSubjectIndex;
-            
-            renderSettingsGrades();
-            settingsModal.classList.remove('hidden');
-        };
-
-        subjectSelect.onchange = (e) => {
-            currentSettingsSubjectIndex = parseInt(e.target.value);
-            renderSettingsGrades();
-        };
-
-        function renderSettingsGrades() {
-            settingsGradesList.innerHTML = '';
-            const subject = appData.subjects[currentSettingsSubjectIndex];
-            
-            if (subject.grades.length === 0) {
-                settingsGradesList.innerHTML = `<div class="text-gray-500 text-sm p-3 text-center">Нет добавленных оценок</div>`;
-                return;
-            }
-
-            subject.grades.forEach((grade, idx) => {
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center bg-[#1c1c1e] p-2.5 rounded-lg border border-gray-700';
-                
-                const info = document.createElement('div');
-                info.className = 'text-sm flex gap-3 items-center';
-                info.innerHTML = `
-                    <span class="text-gray-400 w-[45px]">${grade.date || '--.--'}</span>
-                    <span class="font-bold text-base w-[25px] text-center">${grade.val}</span>
-                    <span class="text-xs text-blue-400 w-[30px]">${grade.weight ? `в:${grade.weight}` : ''}</span>
-                `;
-                
-                const delBtn = document.createElement('button');
-                delBtn.className = 'text-red-500 hover:text-red-400 px-2 py-1 bg-red-500/10 rounded-md text-xs font-medium transition-colors';
-                delBtn.textContent = 'Удалить';
-                delBtn.onclick = () => deleteGrade(idx);
-
-                item.appendChild(info);
-                item.appendChild(delBtn);
-                settingsGradesList.appendChild(item);
-            });
-        }
-
-        addGradeBtn.onclick = () => {
-            const dateVal = newGradeDate.value.trim();
-            const gradeVal = newGradeValue.value.trim();
-            const weightVal = newGradeWeight.value.trim();
-
-            if (!gradeVal) {
-                // Flash red if no grade
-                newGradeValue.classList.add('border-red-500');
-                setTimeout(() => newGradeValue.classList.remove('border-red-500'), 500);
-                return;
-            }
-
-            appData.subjects[currentSettingsSubjectIndex].grades.push({
-                date: dateVal,
-                val: gradeVal,
-                weight: weightVal
-            });
-            
-            saveData();
-            renderSettingsGrades();
-            renderMainView(); // update background
-            
-            // clear inputs
-            newGradeDate.value = '';
-            newGradeValue.value = '';
-            newGradeWeight.value = '';
-        };
-
-        function deleteGrade(gradeIndex) {
-            appData.subjects[currentSettingsSubjectIndex].grades.splice(gradeIndex, 1);
-            saveData();
-            renderSettingsGrades();
-            renderMainView();
-        }
-
-        closeSettingsModal.onclick = () => settingsModal.classList.add('hidden');
-        settingsModal.onclick = (e) => { if(e.target === settingsModal) settingsModal.classList.add('hidden'); };
-
-        saveSettingsBtn.onclick = () => {
-            appData.datePeriod = datePeriodInput.value.trim();
-            saveData();
-            renderMainView();
-            settingsModal.classList.add('hidden');
-        };
-
-        // --- Edit Grade Logic ---
-        function openEditGradeModal(subjIdx, gradeIdx) {
-            editTargetSubjIdx = subjIdx;
-            editTargetGradeIdx = gradeIdx;
-            
-            const grade = appData.subjects[subjIdx].grades[gradeIdx];
-            editGradeDate.value = grade.date || '';
-            editGradeValue.value = grade.val || '';
-            editGradeWeight.value = grade.weight || '';
-            
-            editGradeValue.classList.remove('border-red-500'); // reset error style
-            editGradeModal.classList.remove('hidden');
-        }
-
-        closeEditGradeModal.onclick = () => editGradeModal.classList.add('hidden');
-        editGradeModal.onclick = (e) => { if(e.target === editGradeModal) editGradeModal.classList.add('hidden'); };
-
-        saveEditGradeBtn.onclick = () => {
-            const val = editGradeValue.value.trim();
-            if (!val) {
-                editGradeValue.classList.add('border-red-500');
-                setTimeout(() => editGradeValue.classList.remove('border-red-500'), 500);
-                return;
-            }
-            
-            appData.subjects[editTargetSubjIdx].grades[editTargetGradeIdx] = {
-                date: editGradeDate.value.trim(),
-                val: val,
-                weight: editGradeWeight.value.trim()
-            };
-            
-            saveData();
-            renderMainView();
-            
-            // Если таблица была открыта, обновляем её
-            if (!tableModal.classList.contains('hidden')) {
-                openTableModal(editTargetSubjIdx);
-            }
-            
-            editGradeModal.classList.add('hidden');
-        };
-
-        deleteEditGradeBtn.onclick = () => {
-            appData.subjects[editTargetSubjIdx].grades.splice(editTargetGradeIdx, 1);
-            saveData();
-            renderMainView();
-            
-            if (!tableModal.classList.contains('hidden')) {
-                openTableModal(editTargetSubjIdx);
-            }
-            
-            editGradeModal.classList.add('hidden');
-        };
-
-        // Init
-        loadData();
-        renderMainView();
-    </script>
-</body>
-</html>
+        const tdVal = document.createElement("td");
+        const valBtn = document.createElement("div");
+        valBtn.className = "table-grade-click";
+        valBtn.t
