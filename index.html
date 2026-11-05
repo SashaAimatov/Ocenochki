@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Оценки</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 16px 16px 85px 16px;
+      user-select: none;
+    }
+
+    /* Шапка */
+    .header {
+      position: relative;
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header .period {
+      font-size: 13px;
+      color: #8e8e93;
+    }
+
+    .settings-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: none;
+      border: none;
+      color: #8e8e93;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    .settings-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* Плашки Статистика / Итоговые */
+    .top-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .top-tab {
+      background-color: #1c1c1e;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .top-tab-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    /* Карточка предмета */
+    .subject-card {
+      background-color: #1c1c1e;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* Кликабельная шапка предмета (открывает таблицу) */
+    .subject-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .subject-header:active {
+      opacity: 0.7;
+    }
+
+    .subject-title {
+      font-size: 17px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .subject-title .arrow {
+      color: #636366;
+      font-weight: 400;
+      font-size: 16px;
+    }
+
+    /* Сетка оценок */
+    .grades-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Кнопка конкретной оценки (открывает редактор оценки) */
+    .grade-badge {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      background-color: #161820;
+      border: 1.5px solid #283044;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 500;
+      color: #ffffff;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .grade-badge:active {
+      transform: scale(0.92);
+      border-color: #0a84ff;
+      background-color: #1f2536;
+    }
+
+    .grade-weight {
+      position: absolute;
+      bottom: -5px;
+      right: -5px;
+      background-color: #0a84ff;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 8px;
+      min-width: 16px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* Нижнее меню */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 58px;
+      background-color: #000000;
+      border-top: 1px solid #1c1c1e;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 6px;
+      z-index: 100;
+    }
+
+    .nav-item {
+      font-size: 12px;
+      color: #8e8e93;
+      font-weight: 500;
+    }
+
+    .nav-item.active {
+      color: #ff9f0a;
+      font-weight: 600;
+    }
+
+    /* Модальные окна */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.78);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background-color: #1c1c1e;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 22px 22px 0 0;
+      padding: 20px 18px 34px 18px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: #2c2c2e;
+      border: none;
+      color: #8e8e93;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Средний балл и таблица */
+    .avg-score-box {
+      background-color: #2c2c2e;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .avg-score-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #30d158;
+    }
+
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .details-table th {
+      text-align: left;
+      padding: 10px 8px;
+      color: #8e8e93;
+      border-bottom: 1px solid #2c2c2e;
+      font-weight: 500;
+    }
+
+    .details-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #2c2c2e;
+    }
+
+    .table-edit-btn {
+      background: #161820;
+      border: 1px solid #283044;
+      color: #0a84ff;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Поля ввода */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #8e8e93;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background-color: #2c2c2e;
+      border: 1px solid #3a3a3c;
+      border-radius: 10px;
+      padding: 12px;
+      color: #ffffff;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #0a84ff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background-color: #0a84ff;
+      color: #ffffff;
+    }
+
+    .btn-danger {
+      background-color: #ff453a;
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #2c2c2e;
+      color: #ebebf5;
+      margin-top: 12px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Оценки</h1>
+    <div class="period" id="displayPeriod">31 августа — 8 ноября</div>
+    <button class="settings-btn" onclick="openSettingsModal()" aria-label="Настройки">
+      <svg viewBox="0 0 24 24">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="top-tabs">
+    <div class="top-tab">
+      <div class="top-tab-icon" style="color: #bf5af2; border: 1.5px solid #bf5af2;">◔</div>
+      <span>Статистика</span>
+    </div>
+    <div class="top-tab">
+      <div class="top-tab-icon" style="color: #0a84ff; border: 1.5px solid #0a84ff;">✓</div>
+      <span>Итоговые</span>
+    </div>
+  </div>
+
+  <div id="subjectsContainer"></div>
+
+  <div class="nav-bar">
+    <div class="nav-item">Лента</div>
+    <div class="nav-item">Расписание</div>
+    <div class="nav-item">Задания</div>
+    <div class="nav-item active">Оценки</div>
+    <div class="nav-item">АЛЕКСАН...</div>
+  </div>
+
+  <!-- Окно 1: Редактирование и удаление конкретной оценки -->
+  <div class="modal-overlay" id="editGradeModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="editModalTitle">Изменить оценку</h2>
+        <button class="close-btn" onclick="closeModal('editGradeModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Оценка (например: 5, 4, 2/3)</label>
+        <input type="text" class="form-input" id="editGradeVal">
+      </div>
+      <div class="form-group">
+        <label>Вес / индекс в синем кружке (0 = без кружка)</label>
+        <input type="number" class="form-input" id="editGradeWeight" placeholder="Например: 5, 7, 10">
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="text" class="form-input" id="editGradeDate" placeholder="Например: 14 окт">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="deleteGradeBtn" onclick="deleteSelectedGrade()">Удалить</button>
+        <button class="btn btn-primary" onclick="saveSelectedGrade()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Окно 2: Таблица оценок по предмету -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 id="modalSubjectTitle">Предмет</h2>
+        <button class="close-btn" onclick="closeModal('detailsModal')">&times;</button>
+      </div>
+      <div class="avg-score-box">
+        <span>Средний балл (с учетом веса):</span>
+        <span class="avg-score-val" id="modalAvgScore">0.00</span>
+      </div>
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Оценка (нажми)</th>
+            <th>Вес</th>
+          </tr>
+        </thead>
+        <tbody id="detailsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Окно 3: Общие настройки -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2>Настройки</h2>
+        <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>Период обучения</label>
+        <input type="text" class="form-input" id="settingPeriodInput" oninput="updatePeriod(this.value)">
+      </div>
+      <hr style="border: none; border-top: 1px solid #2c2c2e; margin: 16px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Добавить оценку в предмет</h3>
+      <div class="form-group">
+        <label>Предмет</label>
+        <select class="form-select" id="newGradeSubject"></select>
+      </div>
+      <div class="form-group">
+        <label>Оценка</label>
+        <input type="text" class="form-input" id="newGradeVal" placeholder="Например: 5">
+      </div>
+      <div class="form-group">
+        <label>Вес (число в кружке)</label>
+        <input type="number" class="form-input" id="newGradeWeight" placeholder="Например: 5 или 10 (необязательно)">
+      </div>
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="text" class="form-input" id="newGradeDate" placeholder="Например: 25 окт">
+      </div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="addGradeFromSettings()">Добавить</button>
+      <button class="btn btn-secondary" onclick="resetToDefaults()">Сбросить все оценки к исходным</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "aimatov_grades_v3";
+
+    const DEFAULT_STATE = {
+      period: "31 августа — 8 ноября",
+      subjects: [
+        {
+          name: "Алгебра",
+          items: [
+            { val: "4", weight: 8, date: "05 сен" },
+            { val: "4", weight: 0, date: "10 сен" },
+            { val: "4", weight: 5, date: "17 сен" },
+            { val: "5", weight: 5, date: "24 сен" },
+            { val: "4", weight: 0, date: "01 окт" },
+            { val: "4", weight: 10, date: "08 окт" },
+            { val: "3", weight: 5, date: "15 окт" },
+            { val: "3", weight: 5, date: "22 окт" }
+          ]
+        },
+        {
+          name: "Англ. яз.",
+          items: [
+            { val: "4", weight: 5, date: "09 сен" },
+            { val: "4", weight: 5, date: "16 сен" },
+            { val: "5", weight: 5, date: "23 сен" }
+          ]
+        },
+        {
+          name: "Биология",
+          items: [
+            { val: "4", weight: 0, date: "08 сен" },
+            { val: "5", weight: 0, date: "22 сен" }
+          ]
+        },
+        {
+          name: "Вероятность и статистика",
+          items: [
+            { val: "3", weight: 5, date: "09 сен" },
+            { val: "3", weight: 5, date: "16 сен" }
+          ]
+        },
+        {
+          name: "География",
+          items: [
+            { val: "5", weight: 0, date: "04 сен" },
+            { val: "5", weight: 0, date: "18 сен" },
+            { val: "5", weight: 5, date: "02 окт" }
+          ]
+        },
+        {
+          name: "Геометрия",
+          items: [
+            { val: "3", weight: 7, date: "06 сен" },
+            { val: "3", weight: 5, date: "13 сен" },
+            { val: "4", weight: 5, date: "20 сен" },
+            { val: "3", weight: 3, date: "27 сен" },
+            { val: "5", weight: 0, date: "04 окт" }
+          ]
+        },
+        {
+          name: "Информатика",
+          items: [
+            { val: "5", weight: 0, date: "07 сен" },
+            { val: "4", weight: 5, date: "14 сен" },
+            { val: "5", weight: 5, date: "21 сен" },
+            { val: "5", weight: 3, date: "28 сен" },
+            { val: "5", weight: 0, date: "05 окт" },
+            { val: "5", weight: 0, date: "12 окт" },
+            { val: "5", weight: 0, date: "19 окт" },
+            { val: "5", weight: 0, date: "26 окт" },
+            { val: "5", weight: 0, date: "02 ноя" }
+          ]
+        },
+        {
+          name: "История",
+          items: [
+            { val: "5", weight: 0, date: "11 сен" },
+            { val: "3", weight: 5, date: "18 сен" },
+            { val: "4", weight: 5, date: "25 сен" },
+            { val: "4", weight: 0, date: "02 окт" }
+          ]
+        },
+        {
+          name: "Литература",
+          items: [
+            { val: "2/3", weight: 10, date: "04 сен" },
+            { val: "4", weight: 0, date: "11 сен" },
+            { val: "5", weight: 0, date: "18 сен" },
+            { val: "5", weight: 0, date: "25 сен" },
+            { val: "5", weight: 0, date: "02 окт" },
+            { val: "5", weight: 0, date: "09 окт" },
+            { val: "4", weight: 0, date: "16 окт" },
+            { val: "5", weight: 0, date: "23 окт" }
+          ]
+        },
+        {
+          name: "Обществознание",
+          items: [
+            { val: "4", weight: 7, date: "10 сен" },
+            { val: "5", weight: 5, date: "17 сен" },
+            { val: "3", weight: 0, date: "24 сен" },
+            { val: "5", weight: 5, date: "01 окт" }
+          ]
+        },
+        {
+          name: "Основы безопасности и защиты Родины",
+          items: [
+            { val: "5", weight: 0, date: "15 сен" },
+            { val: "5", weight: 0, date: "29 сен" },
+            { val: "5", weight: 0, date: "13 окт" }
+          ]
+        },
+        {
+          name: "Русский язык",
+          items: [
+            { val: "3", weight: 0, date: "03 сен" },
+            { val: "3", weight: 10, date: "12 сен" },
+            { val: "2", weight: 0, date: "19 сен" },
+            { val: "4", weight: 10, date: "26 сен" },
+            { val: "3", weight: 10, date: "05 окт" },
+            { val: "3", weight: 10, date: "17 окт" }
+          ]
+        },
+        {
+          name: "Физика",
+          items: [
+            { val: "4", weight: 7, date: "08 сен" },
+            { val: "4", weight: 5, date: "15 сен" },
+            { val: "5", weight: 0, date: "22 сен" },
+            { val: "5", weight: 0, date: "29 сен" }
+          ]
+        },
+        {
+          name: "Физкультура",
+          items: [
+            { val: "5", weight: 0, date: "05 сен" },
+            { val: "5", weight: 0, date: "12 сен" },
+            { val: "5", weight: 0, date: "19 сен" },
+            { val: "5", weight: 0, date: "26 сен" },
+            { val: "5", weight: 0, date: "03 окт" }
+          ]
+        },
+        {
+          name: "Химия",
+          items: [
+            { val: "5", weight: 5, date: "11 сен" },
+            { val: "3", weight: 0, date: "18 сен" }
+          ]
+        }
+      ]
+    };
+
+    let state = loadState();
+    let activeSubjectIdx = -1;
+    let activeGradeIdx = -1;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function parseScore(valStr) {
+      if (!valStr) return null;
+      const str = String(valStr).trim();
+      if (str.includes("/")) {
+        const parts = str.split("/");
+        const a = parseFloat(parts[0]);
+        const b = parseFloat(parts[1]);
+        if (!isNaN(a) && !isNaN(b)) return (a + b) / 2;
+      }
+      const num = parseFloat(str);
+      return isNaN(num) ? null : num;
+    }
+
+    function getWeightedAverage(items) {
+      let sum = 0;
+      let totalWeight = 0;
+      items.forEach(item => {
+        const score = parseScore(item.val);
+        if (score !== null) {
+          const w = (item.weight && item.weight > 0) ? Number(item.weight) : 1;
+          sum += score * w;
+          totalWeight += w;
+        }
+      });
+      return totalWeight > 0 ? (sum / totalWeight).toFixed(2) : "—";
+    }
+
+    function render() {
+      document.getElementById("displayPeriod").textContent = state.period;
+      const container = document.getElementById("subjectsContainer");
+      container.innerHTML = "";
+
+      state.subjects.forEach((subj, sIdx) => {
+        const card = document.createElement("div");
+        card.className = "subject-card";
+
+        // 1. Шапка предмета — открывает таблицу
+        const header = document.createElement("div");
+        header.className = "subject-header";
+        header.innerHTML = `
+          <div class="subject-title">
+            <span>${subj.name}</span>
+            <span class="arrow">&gt;</span>
+          </div>
+        `;
+        header.onclick = function() {
+          openSubjectTable(sIdx);
+        };
+        card.appendChild(header);
+
+        // 2. Сетка с квадратиками оценок (без плюсов)
+        const grid = document.createElement("div");
+        grid.className = "grades-grid";
+
+        subj.items.forEach((item, gIdx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "grade-badge";
+          btn.textContent = item.val;
+
+          if (item.weight && Number(item.weight) > 0) {
+            const wSpan = document.createElement("span");
+            wSpan.className = "grade-weight";
+            wSpan.textContent = item.weight;
+            btn.appendChild(wSpan);
+          }
+
+          // Клик по оценке открывает редактор этой оценки
+          btn.onclick = function(event) {
+            event.stopPropagation();
+            openGradeEditor(sIdx, gIdx);
+          };
+
+          grid.appendChild(btn);
+        });
+    
