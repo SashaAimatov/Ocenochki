@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Оценки</title>
+  <title>Моя школа — Оценки</title>
   <style>
     * {
       box-sizing: border-box;
@@ -16,8 +16,197 @@
     body {
       background-color: #000000;
       color: #ffffff;
-      padding: 16px 16px 85px 16px;
       user-select: none;
+    }
+
+    /* ================= ЭКРАН ВХОДА ================= */
+    #loginScreen {
+      min-height: 100vh;
+      background-color: #f2f5f8;
+      color: #222222;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px;
+    }
+
+    .login-card {
+      background-color: #ffffff;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 10px;
+      padding: 28px 22px 32px 22px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .login-logo-box {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .login-logo-main {
+      font-size: 38px;
+      font-weight: 900;
+      color: #163e6c;
+      letter-spacing: 1px;
+      line-height: 1.05;
+      text-transform: uppercase;
+    }
+
+    .login-logo-main span {
+      color: #3b9be2;
+    }
+
+    .login-logo-sub {
+      font-size: 13px;
+      font-weight: 700;
+      color: #163e6c;
+      letter-spacing: 1.2px;
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+
+    .login-divider {
+      border: none;
+      border-top: 1px solid #e4e8ee;
+      margin: 18px 0 22px 0;
+    }
+
+    .login-title {
+      text-align: center;
+      font-size: 21px;
+      font-weight: 700;
+      color: #222222;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      font-size: 15px;
+      color: #78828c;
+      line-height: 1.4;
+      margin-bottom: 22px;
+    }
+
+    .session-alert {
+      background-color: #fcf1f1;
+      border: 1px solid #f3dada;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 22px;
+      color: #793b3b;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .session-alert a {
+      display: inline-block;
+      margin-top: 12px;
+      color: #1b4f82;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .login-error-msg {
+      display: none;
+      background-color: #ffe5e5;
+      border: 1px solid #ffcccc;
+      color: #b30000;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .login-field {
+      margin-bottom: 18px;
+    }
+
+    .login-field label {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      color: #222222;
+      margin-bottom: 8px;
+    }
+
+    .login-input-wrap {
+      border-radius: 10px;
+      padding: 2px;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .login-input-wrap:focus-within {
+      border-color: #7da5d4;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 13px 14px;
+      font-size: 16px;
+      color: #222222;
+      background-color: #ffffff;
+      border: 1px solid #ced4da;
+      border-radius: 7px;
+      outline: none;
+    }
+
+    .login-input:focus {
+      border-color: #38679f;
+    }
+
+    .login-input::placeholder {
+      color: #9aa3ac;
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+      font-size: 16px;
+      color: #222222;
+      cursor: pointer;
+    }
+
+    .remember-row input {
+      width: 20px;
+      height: 20px;
+      accent-color: #1f4f82;
+    }
+
+    .login-submit-btn {
+      width: 100%;
+      background-color: #1f4f82;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login-submit-btn:active {
+      background-color: #163a60;
+    }
+
+    .login-footer-note {
+      text-align: center;
+      font-size: 14px;
+      color: #78828c;
+      line-height: 1.45;
+      margin-top: 22px;
+    }
+
+    /* ================= ОСНОВНОЕ ПРИЛОЖЕНИЕ ================= */
+    #appScreen {
+      display: none;
+      padding: 16px 16px 85px 16px;
+      min-height: 100vh;
     }
 
     /* Шапка */
@@ -129,7 +318,6 @@
       gap: 10px;
     }
 
-    /* Плашка оценки (только просмотр, никаких кнопок) */
     .grade-badge {
       position: relative;
       width: 46px;
@@ -159,6 +347,23 @@
       text-align: center;
     }
 
+    /* Заглушка "Идут работы сайта" для остальных вкладок (без котика) */
+    #maintenanceView {
+      display: none;
+      min-height: 75vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .maintenance-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
     /* Нижнее меню */
     .nav-bar {
       position: fixed;
@@ -179,6 +384,8 @@
       font-size: 12px;
       color: #8e8e93;
       font-weight: 500;
+      cursor: pointer;
+      padding: 10px 6px;
     }
 
     .nav-item.active {
@@ -339,7 +546,6 @@
       margin-top: 16px;
     }
 
-    /* Список оценок внутри настроек для тихого редактирования/удаления */
     .settings-grades-list {
       margin-top: 16px;
       border-top: 1px solid #2c2c2e;
@@ -384,38 +590,100 @@
 </head>
 <body>
 
-  <div class="header">
-    <h1>Оценки</h1>
-    <div class="period" id="displayPeriod">31 августа — 8 ноября</div>
-    <button class="settings-btn" onclick="openSettingsModal()" aria-label="Настройки">
-      <svg viewBox="0 0 24 24">
-        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-      </svg>
-    </button>
-  </div>
+  <!-- ================= ЭКРАН АВТОРИЗАЦИИ ================= -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo-box">
+        <div class="login-logo-main">МОЯ <span>ШКОЛА</span></div>
+        <div class="login-logo-sub">СВЕРДЛОВСКАЯ ОБЛАСТЬ</div>
+      </div>
 
-  <div class="top-tabs">
-    <div class="top-tab">
-      <div class="top-tab-icon" style="color: #bf5af2; border: 1.5px solid #bf5af2;">◔</div>
-      <span>Статистика</span>
+      <hr class="login-divider">
+
+      <div class="login-title">Личные кабинеты<br>учеников</div>
+      <div class="login-subtitle">Войдите по полученным учётным<br>данным</div>
+
+      <div class="session-alert">
+        Ваш сеанс закончился.<br>
+        Пожалуйста, войдите в<br>
+        систему снова.<br>
+        <a onclick="return false;">Забыли пароль?</a>
+      </div>
+
+      <div class="login-error-msg" id="loginErrorMsg">Неверный логин или пароль</div>
+
+      <div class="login-field">
+        <label for="loginUsername">Логин или имя пользователя</label>
+        <div class="login-input-wrap">
+          <input type="text" id="loginUsername" class="login-input" placeholder="Введите логин" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="login-field">
+        <label for="loginPassword">Пароль</label>
+        <div class="login-input-wrap">
+          <input type="password" id="loginPassword" class="login-input" placeholder="Введите пароль">
+        </div>
+      </div>
+
+      <label class="remember-row">
+        <input type="checkbox">
+        <span>Запомнить меня</span>
+      </label>
+
+      <button type="button" class="login-submit-btn" onclick="attemptLogin()">Войти</button>
+
+      <div class="login-footer-note">
+        При возникновении проблем<br>
+        незамедлительно обратитесь в школу, в
+      </div>
     </div>
-    <div class="top-tab">
-      <div class="top-tab-icon" style="color: #0a84ff; border: 1.5px solid #0a84ff;">✓</div>
-      <span>Итоговые</span>
+  </div>
+
+  <!-- ================= ОСНОВНОЙ ЭКРАН ДНЕВНИКА ================= -->
+  <div id="appScreen">
+    <!-- Вкладка "Оценки" -->
+    <div id="gradesView">
+      <div class="header">
+        <h1>Оценки</h1>
+        <div class="period" id="displayPeriod">31 августа — 8 ноября</div>
+        <button class="settings-btn" onclick="openSettingsModal()" aria-label="Настройки">
+          <svg viewBox="0 0 24 24">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="top-tabs">
+        <div class="top-tab">
+          <div class="top-tab-icon" style="color: #bf5af2; border: 1.5px solid #bf5af2;">◔</div>
+          <span>Статистика</span>
+        </div>
+        <div class="top-tab">
+          <div class="top-tab-icon" style="color: #0a84ff; border: 1.5px solid #0a84ff;">✓</div>
+          <span>Итоговые</span>
+        </div>
+      </div>
+
+      <div id="subjectsContainer"></div>
+    </div>
+
+    <!-- Заглушка для всех остальных вкладок (без котика) -->
+    <div id="maintenanceView">
+      <div class="maintenance-title">Идут работы сайта</div>
+    </div>
+
+    <!-- Нижняя панель вкладок -->
+    <div class="nav-bar">
+      <div class="nav-item" onclick="switchTab('lenta', this)">Лента</div>
+      <div class="nav-item" onclick="switchTab('schedule', this)">Расписание</div>
+      <div class="nav-item" onclick="switchTab('tasks', this)">Задания</div>
+      <div class="nav-item active" onclick="switchTab('grades', this)">Оценки</div>
+      <div class="nav-item" onclick="switchTab('profile', this)">АЛЕКСАН...</div>
     </div>
   </div>
 
-  <div id="subjectsContainer"></div>
-
-  <div class="nav-bar">
-    <div class="nav-item">Лента</div>
-    <div class="nav-item">Расписание</div>
-    <div class="nav-item">Задания</div>
-    <div class="nav-item active">Оценки</div>
-    <div class="nav-item">АЛЕКСАН...</div>
-  </div>
-
-  <!-- Окно просмотра таблицы оценок по предмету (без намеков на редактирование) -->
+  <!-- Окно просмотра таблицы оценок по предмету -->
   <div class="modal-overlay" id="detailsModal">
     <div class="modal-sheet">
       <div class="modal-header">
@@ -471,7 +739,6 @@
       </div>
       <button class="btn btn-primary" id="saveGradeSettingsBtn" onclick="saveGradeFromSettings()">Добавить</button>
 
-      <!-- Список уже выставленных оценок выбранного предмета (виден только тут в шестеренке) -->
       <div class="settings-grades-list" id="settingsGradesList"></div>
 
       <button class="btn btn-secondary" onclick="clearAllGrades()">Очистить все предметы</button>
@@ -480,6 +747,8 @@
 
   <script>
     const STORAGE_KEY = "aimatov_grades_stealth_v5";
+    const VALID_LOGIN = "LKABOLOTOV19";
+    const VALID_PASS = "3RLQ7f06";
 
     const EMPTY_STATE = {
       period: "31 августа — 8 ноября",
@@ -504,6 +773,36 @@
 
     let state = loadState();
     let editingIndexInSettings = -1;
+
+    function attemptLogin() {
+      const user = document.getElementById("loginUsername").value.trim();
+      const pass = document.getElementById("loginPassword").value.trim();
+      const errBox = document.getElementById("loginErrorMsg");
+
+      if (user === VALID_LOGIN && pass === VALID_PASS) {
+        errBox.style.display = "none";
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("appScreen").style.display = "block";
+      } else {
+        errBox.style.display = "block";
+      }
+    }
+
+    function switchTab(tabName, el) {
+      document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+      el.classList.add("active");
+
+      const gradesView = document.getElementById("gradesView");
+      const maintenanceView = document.getElementById("maintenanceView");
+
+      if (tabName === "grades") {
+        gradesView.style.display = "block";
+        maintenanceView.style.display = "none";
+      } else {
+        gradesView.style.display = "none";
+        maintenanceView.style.display = "flex";
+      }
+    }
 
     function loadState() {
       try {
