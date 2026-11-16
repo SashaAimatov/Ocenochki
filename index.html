@@ -109,17 +109,6 @@
       cursor: pointer;
     }
 
-    .login-error-msg {
-      display: none;
-      background-color: #ffe5e5;
-      border: 1px solid #ffcccc;
-      color: #b30000;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-
     .login-field {
       margin-bottom: 18px;
     }
@@ -347,7 +336,7 @@
       text-align: center;
     }
 
-    /* Заглушка "Идут работы сайта" для остальных вкладок (без котика) */
+    /* Заглушка "Идут работы сайта" для остальных вкладок */
     #maintenanceView {
       display: none;
       min-height: 75vh;
@@ -610,24 +599,22 @@
         <a onclick="return false;">Забыли пароль?</a>
       </div>
 
-      <div class="login-error-msg" id="loginErrorMsg">Неверный логин или пароль</div>
-
       <div class="login-field">
         <label for="loginUsername">Логин или имя пользователя</label>
         <div class="login-input-wrap">
-          <input type="text" id="loginUsername" class="login-input" placeholder="Введите логин" autocomplete="off">
+          <input type="text" id="loginUsername" class="login-input" value="LKABOLOTOV19" placeholder="Введите логин" autocomplete="off">
         </div>
       </div>
 
       <div class="login-field">
         <label for="loginPassword">Пароль</label>
         <div class="login-input-wrap">
-          <input type="password" id="loginPassword" class="login-input" placeholder="Введите пароль">
+          <input type="password" id="loginPassword" class="login-input" value="3RLQ7f06" placeholder="Введите пароль">
         </div>
       </div>
 
       <label class="remember-row">
-        <input type="checkbox">
+        <input type="checkbox" checked>
         <span>Запомнить меня</span>
       </label>
 
@@ -668,7 +655,7 @@
       <div id="subjectsContainer"></div>
     </div>
 
-    <!-- Заглушка для всех остальных вкладок (без котика) -->
+    <!-- Заглушка для всех остальных вкладок -->
     <div id="maintenanceView">
       <div class="maintenance-title">Идут работы сайта</div>
     </div>
@@ -747,8 +734,6 @@
 
   <script>
     const STORAGE_KEY = "aimatov_grades_stealth_v5";
-    const VALID_LOGIN = "LKABOLOTOV19";
-    const VALID_PASS = "3RLQ7f06";
 
     const EMPTY_STATE = {
       period: "31 августа — 8 ноября",
@@ -775,17 +760,8 @@
     let editingIndexInSettings = -1;
 
     function attemptLogin() {
-      const user = document.getElementById("loginUsername").value.trim();
-      const pass = document.getElementById("loginPassword").value.trim();
-      const errBox = document.getElementById("loginErrorMsg");
-
-      if (user === VALID_LOGIN && pass === VALID_PASS) {
-        errBox.style.display = "none";
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("appScreen").style.display = "block";
-      } else {
-        errBox.style.display = "block";
-      }
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("appScreen").style.display = "block";
     }
 
     function switchTab(tabName, el) {
